@@ -1,0 +1,63 @@
+object Form1: TForm1
+  Left = 0
+  Height = 608
+  Top = 162
+  Width = 811
+  BorderStyle = bsNone
+  Caption = 'Toplevel Windows'
+  ClientHeight = 608
+  ClientWidth = 811
+  DesignTimePPI = 120
+  FormStyle = fsSystemStayOnTop
+  OnActivate = FormActivate
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  ShowInTaskBar = stNever
+  LCLVersion = '2.2.3.0'
+  object TopLevelList: TListView
+    Left = 0
+    Height = 608
+    Top = 0
+    Width = 811
+    Align = alClient
+    Columns = <    
+      item
+        Caption = 'Name'
+        Width = 250
+      end    
+      item
+        Caption = 'State'
+        Width = 62
+      end    
+      item
+        Caption = 'Host'
+        Width = 62
+      end    
+      item
+        Caption = 'Command'
+        Width = 100
+      end    
+      item
+        Caption = 'XID'
+        Width = 62
+      end    
+      item
+        Caption = 'Geometry'
+        Width = 286
+      end>
+    ReadOnly = True
+    RowSelect = True
+    SortColumn = 0
+    SortType = stText
+    TabOrder = 0
+    ViewStyle = vsReport
+    OnClick = TopLevelListClick
+    OnDblClick = TopLevelListDblClick
+  end
+  object Timer1: TTimer
+    Interval = 900
+    OnTimer = Timer1Timer
+    Left = 198
+    Top = 523
+  end
+end
