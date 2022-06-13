@@ -25,12 +25,14 @@ type
     property WindowPID: cardinal read fWindowPID;
     property Name: string read fName;
     property Geometry: TRect read fGeometry;
-    constructor Create(AXWindowList: TXWindowList; AWindow: TWindow);
+    constructor Create(AXWindowList: TXWindowList; AWindow: TWindow); virtual;
     destructor Destroy; override;
     procedure ActivateWindow;
     procedure MinimizeWindow;
     function FetchAtomNames: string;
   end;
+
+  TWindowDataClass = class of TWindowData;
 
   TWindowDataList = specialize TFPGObjectList<TWindowData>;
 
@@ -38,6 +40,7 @@ type
   private
     fItems: TWindowDataList;
     fXWindowList: TXWindowList;
+    fWindowDataClass: TWindowDataClass;
     function getCount: integer;
     function getItems(const index: integer): TWindowData;
     function IsHasIcon(AWindow: TWindow): boolean;
@@ -47,7 +50,7 @@ type
     property Items: TWindowDataList read fItems;
     property Values[const index: integer]: TWindowData read getItems; default;
     procedure UpdateDataList;
-    constructor Create;
+    constructor Create(WindowDataClass: TWindowDataClass = nil);
     destructor Destroy; override;
   end;
 
@@ -176,7 +179,10 @@ begin
     begin
       if IsHasIcon(fXWindowList.WindowList[i]) then
       begin
-        WinItem := TWindowData.Create(fXWindowList, fXWindowList.WindowList[i]);
+        if fWindowDataClass <> nil then
+          WinItem := TWindowDataClass(fWindowDataClass).Create(fXWindowList, fXWindowList.WindowList[i])
+        else
+          WinItem := TWindowData.Create(fXWindowList, fXWindowList.WindowList[i]);
         fItems.Add(WinItem);
       end;
     end;
@@ -210,11 +216,12 @@ begin
   FreeAndNil(DeleteList);
 end;
 
-constructor TWindowList.Create;
+constructor TWindowList.Create(WindowDataClass: TWindowDataClass = nil);
 begin
   inherited Create;
   fItems := TWindowDataList.Create;
   fXWindowList := TXWindowList.Create;
+  fWindowDataClass := WindowDataClass;
 end;
 
 destructor TWindowList.Destroy;
