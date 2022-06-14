@@ -31,6 +31,7 @@ type
     procedure ActivateWindow;
     procedure MinimizeWindow;
     function FetchAtomNames: string;
+    procedure UpdateInformation;
     function GetIcon: TBGRABitmap;
   end;
 
@@ -63,18 +64,23 @@ begin
   inherited Create;
   fXWindowList := AXWindowList;
   fWindow := AWindow;
-  fWindowPID := fXWindowList.GetWindowPID(AWindow);
-  fName := fXWindowList.GetWindowName(AWindow);
-  fState := fXWindowList.GetWindowState(AWindow);
-  fHost := fXWindowList.GetWindowHost(AWindow);
-  if fWindowPID <> 0 then
-    fCommand := fXWindowList.GetWindowCmd(fWindowPID);
-  fGeometry := fXWindowList.GetWindowRect(AWindow);
+  UpdateInformation;
 end;
 
 destructor TWindowData.Destroy;
 begin
   inherited Destroy;
+end;
+
+procedure TWindowData.UpdateInformation;
+begin
+  fWindowPID := fXWindowList.GetWindowPID(fWindow);
+  fName := fXWindowList.GetWindowName(fWindow);
+  fState := fXWindowList.GetWindowState(fWindow);
+  fHost := fXWindowList.GetWindowHost(fWindow);
+  if fWindowPID <> 0 then
+    fCommand := fXWindowList.GetWindowCmd(fWindowPID);
+  fGeometry := fXWindowList.GetWindowRect(fWindow);
 end;
 
 function ReadBitmap(Val: PByte; W, H, Size: integer): TBGRABitmap;
@@ -240,19 +246,15 @@ begin
     DoLater := True;
     for j := 0 to fItems.Count -1 do
     begin
-      if
-        (fXWindowList.GetWindowName(fXWindowList.WindowList[i]) = fItems[j].Name) and
-        (fXWindowList.GetWindowState(fXWindowList.WindowList[i]) = fItems[j].State) and
-        (fXWindowList.GetWindowHost(fXWindowList.WindowList[i]) = fItems[j].Host) and
-        (fXWindowList.GetWindowPID(fXWindowList.WindowList[i]) = fItems[j].WindowPID) and
-        CompareGeometry(fXWindowList.GetWindowRect(fXWindowList.WindowList[i]), fItems[j].Geometry)
+      if (fXWindowList.GetWindowPID(fXWindowList.WindowList[i]) = fItems[j].WindowPID)
         then
       begin
-        if i > currentIndex then
+        if i <> currentIndex then
         begin
           currentIndex := 1;
           ActiveIndex := j;
         end;
+        fItems[j].UpdateInformation;
         DoLater := False;
       end;
     end;
@@ -275,11 +277,7 @@ begin
     DoLater := True;
     for j := 0 to fXWindowList.WindowList.Count -1 do
     begin
-      if (fItems[i].Name = fXWindowList.GetWindowName(fXWindowList.WindowList[j])) and
-        (fItems[i].State = fXWindowList.GetWindowState(fXWindowList.WindowList[j])) and
-        (fItems[i].WindowPID = fXWindowList.GetWindowPID(fXWindowList.WindowList[j])) and
-        CompareGeometry(fItems[i].Geometry, fXWindowList.GetWindowRect(fXWindowList.WindowList[j]))
-        then
+      if (fItems[i].WindowPID = fXWindowList.GetWindowPID(fXWindowList.WindowList[j])) then
       begin
         DoLater := False;
       end
