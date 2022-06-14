@@ -1,11 +1,11 @@
 object Form1: TForm1
   Left = 0
-  Height = 608
+  Height = 583
   Top = 162
   Width = 811
   BorderStyle = bsNone
   Caption = 'Toplevel Windows'
-  ClientHeight = 608
+  ClientHeight = 583
   ClientWidth = 811
   DesignTimePPI = 120
   FormStyle = fsSystemStayOnTop
@@ -13,13 +13,13 @@ object Form1: TForm1
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   ShowInTaskBar = stNever
-  LCLVersion = '2.2.3.0'
   object TopLevelList: TListView
     Left = 0
-    Height = 608
+    Height = 408
     Top = 0
     Width = 811
-    Align = alClient
+    Align = alTop
+    Anchors = [akTop, akLeft, akRight, akBottom]
     Columns = <    
       item
         Caption = 'Name'
@@ -53,6 +53,24 @@ object Form1: TForm1
     ViewStyle = vsReport
     OnClick = TopLevelListClick
     OnDblClick = TopLevelListDblClick
+  end
+  object Panel1: TPanel
+    Left = 11
+    Height = 89
+    Top = 504
+    Width = 788
+    Anchors = [akLeft, akRight, akBottom]
+    Caption = 'Panel1'
+    ChildSizing.ShrinkVertical = crsScaleChilds
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    TabOrder = 1
+  end
+  object Image1: TImage
+    Left = 224
+    Height = 57
+    Top = 408
+    Width = 72
+    Stretch = True
   end
   object Timer1: TTimer
     Interval = 900

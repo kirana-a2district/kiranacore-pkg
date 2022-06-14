@@ -5,7 +5,8 @@ unit WindowListUtils;
 interface
 
 uses
-  Classes, SysUtils, xwindowlist, xlib, x,  fgl, xatom, Dialogs, ctypes;
+  Classes, SysUtils, xwindowlist, xlib, x,  fgl, xatom, Dialogs, ctypes,
+  Graphics,  GraphType, LCLType, LCLIntf, FPImage, BGRABitmap, BGRABitmapTypes;
 
 type
   TWindowData = class(TPersistent)
@@ -30,6 +31,7 @@ type
     procedure ActivateWindow;
     procedure MinimizeWindow;
     function FetchAtomNames: string;
+    function GetIcon: TBGRABitmap;
   end;
 
   TWindowDataClass = class of TWindowData;
@@ -73,6 +75,74 @@ end;
 destructor TWindowData.Destroy;
 begin
   inherited Destroy;
+end;
+
+function ReadBitmap(Val: PByte; W, H, Size: integer): TBGRABitmap;
+var
+  bmp: TBGRABitmap;
+  a, r, g, b: byte;
+  argb: PByte;
+  x, y: Integer;
+begin
+  bmp := TBGRABitmap.Create(w, h);
+  argb := Val;
+  for y := 0 to H -1 do
+  begin
+    for x := 0 to W -1 do
+    begin
+      a := argb[3];
+      r := argb[2] * a div 255;
+      g := argb[1] * a div 255;
+      b := argb[0] * a div 255;
+      //bmp.Canvas.DrawPixel(x, y, FPImage.FPColor(r, g, b, a));
+      bmp.DrawPixel(x, y, BGRA(r, g, b, a));
+
+      Inc(argb, 4);
+    end;
+  end;
+
+  Result := bmp;
+end;
+
+function TWindowData.GetIcon: TBGRABitmap;
+var
+  ActualTypeReturn: TAtom;
+  ActualFormatReturn: LongInt;
+  NItemsReturn, BytesAfterReturn: Cardinal;
+  Ptr: PByte;
+  IconAtom: TAtom;
+  PropResult: boolean;
+  i: integer;
+  Width, Height, Size: Cardinal;
+begin
+  Width := 0;
+  Height := 0;
+  IconAtom := XInternAtom(fXWindowList.Display, '_NET_WM_ICON', LongBool(1));
+
+  PropResult := XGetWindowProperty(fXWindowList.Display, fWindow, IconAtom,
+    0, 1, 0, AnyPropertyType, @ActualTypeReturn, @ActualFormatReturn,
+    @NItemsReturn, @BytesAfterReturn, @Ptr) = Success;
+  if PropResult then
+    Width := PCardinal(Ptr)^;
+  if Assigned(Ptr) then XFree(Ptr);
+
+  PropResult := XGetWindowProperty(fXWindowList.Display, fWindow, IconAtom,
+    1, 1, 0, AnyPropertyType, @ActualTypeReturn, @ActualFormatReturn,
+    @NItemsReturn, @BytesAfterReturn, @Ptr) = Success;
+  if PropResult then
+    Height := PCardinal(Ptr)^;
+  Size := Width * Height;
+  if Assigned(Ptr) then XFree(Ptr);
+
+  PropResult := XGetWindowProperty(fXWindowList.Display, fWindow, IconAtom,
+    2, Size, 0, AnyPropertyType, @ActualTypeReturn, @ActualFormatReturn,
+    @NItemsReturn, @BytesAfterReturn, @Ptr) = Success;
+
+  if PropResult then
+  begin
+    Result := ReadBitmap(Ptr, Width, Height, Size);
+  end;
+  if Assigned(Ptr) then XFree(Ptr);
 end;
 
 function TWindowData.FetchAtomNames: string;

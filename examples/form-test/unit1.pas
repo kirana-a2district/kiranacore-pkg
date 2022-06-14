@@ -6,13 +6,22 @@ interface
 
 uses
   Classes,SysUtils,FileUtil,Forms,Controls,Graphics,Dialogs,ComCtrls,
-  ExtCtrls, WindowListUtils, xlib;
+  ExtCtrls, WindowListUtils, xwindowlist, x, xlib;
 
 type
+
+  TMyWindow = class(TWindowData)
+  public
+    Img: TImage;
+    constructor Create(AXWindowList: TXWindowList; AWindow: TWindow); override;
+    destructor Destroy; override;
+  end;
 
   { TForm1 }
 
   TForm1 = class(TForm)
+    Image1: TImage;
+    Panel1: TPanel;
     Timer1:TTimer;
     TopLevelList:TListView;
     procedure FormActivate(Sender: TObject);
@@ -34,6 +43,35 @@ var
 
 implementation
 
+constructor TMyWindow.Create(AXWindowList: TXWindowList; AWindow: TWindow);
+var
+  bmp: TBitmap;
+begin
+  inherited Create(AXWindowList, AWindow);
+  Img := TImage.Create(Form1);
+
+  //ShowMessage('something happen');
+
+  bmp := GetIcon;
+  //Img.Width := Form1.Panel1.Height;
+  //Img.Height := Form1.Panel1.Height;
+  //Img.Parent := Form1.Panel1;
+  //Form1.Image1.Picture.Bitmap.BeginUpdate();
+  //Form1.Image1.Canvas.Draw(0, 0, bmp);
+  //Form1.Image1.Picture.Bitmap.EndUpdate();
+  //bmp.SaveToFile(ExtractFilePath(Application.ExeName)+'moyang');
+  //Img.Picture.Bitmap.LoadFromRawImage(bmp.RawImage, false);
+
+  //DockButton.Width := frDock.pnDock.Width;
+  bmp.Free;
+end;
+
+destructor TMyWindow.Destroy;
+begin
+  FreeAndNil(Img);
+  inherited Destroy;
+end;
+
 {$R *.lfm}
 
 { TForm1 }
@@ -41,7 +79,7 @@ implementation
 
 procedure TForm1.FormCreate(Sender:TObject);
 begin
-fWindowList:=TWindowList.Create;
+fWindowList:=TWindowList.Create(TMyWindow);
 end;
 
 procedure TForm1.FormActivate(Sender: TObject);
