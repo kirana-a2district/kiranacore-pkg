@@ -82,18 +82,29 @@ var
   bmp: TBGRABitmap;
   a, r, g, b: byte;
   argb: PByte;
-  x, y: Integer;
+  i, f, x, y: Integer;
+  imgBuffer: TBytes;
 begin
   bmp := TBGRABitmap.Create(w, h);
-  argb := Val;
+  SetLength(imgBuffer, Length(TBytes(Val)) div 2);
+  argb := PByte(imgBuffer);
+  i := 0;
+  while i < Length(TBytes(Val)) div 2 do
+  begin
+    argb[i] := Val[(i*2)];
+    argb[i+1] := Val[(i*2)+1];
+    argb[i+2] := Val[(i*2)+2];
+    argb[i+3] := Val[(i*2)+3];
+    i += 4;
+  end;
   for y := 0 to H -1 do
   begin
     for x := 0 to W -1 do
     begin
       a := argb[3];
-      r := argb[2] * a div 255;
-      g := argb[1] * a div 255;
-      b := argb[0] * a div 255;
+      r := argb[2];
+      g := argb[1];
+      b := argb[0];
       //bmp.Canvas.DrawPixel(x, y, FPImage.FPColor(r, g, b, a));
       bmp.DrawPixel(x, y, BGRA(r, g, b, a));
 
