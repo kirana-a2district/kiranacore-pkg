@@ -55,22 +55,15 @@ object Form1: TForm1
     OnDblClick = TopLevelListDblClick
   end
   object Panel1: TPanel
-    Left = 11
+    Left = 16
     Height = 89
-    Top = 504
+    Top = 440
     Width = 788
     Anchors = [akLeft, akRight, akBottom]
     Caption = 'Panel1'
     ChildSizing.ShrinkVertical = crsScaleChilds
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     TabOrder = 1
-  end
-  object Image1: TImage
-    Left = 224
-    Height = 57
-    Top = 408
-    Width = 72
-    Stretch = True
   end
   object Timer1: TTimer
     Interval = 900

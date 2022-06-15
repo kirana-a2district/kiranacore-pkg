@@ -20,7 +20,6 @@ type
   { TForm1 }
 
   TForm1 = class(TForm)
-    Image1: TImage;
     Panel1: TPanel;
     Timer1:TTimer;
     TopLevelList:TListView;
@@ -48,22 +47,17 @@ var
   bmp: TBGRABitmap;
 begin
   inherited Create(AXWindowList, AWindow);
-  //Img := TImage.Create(Form1);
+  Img := TImage.Create(Form1);
 
   //ShowMessage('something happen');
 
   bmp := GetIcon;
-  //Img.Width := Form1.Panel1.Height;
-  //Img.Height := Form1.Panel1.Height;
-  //Img.Parent := Form1.Panel1;
-  //Form1.Image1.Picture.Bitmap.BeginUpdate();
-  bmp.Draw(Form1.Image1.Canvas, 0, 0);
-  //Form1.Image1.Canvas.Draw(0, 0, bmp);
-  //Form1.Image1.Picture.Bitmap.EndUpdate();
-  //bmp.SaveToFile(ExtractFilePath(Application.ExeName)+'moyang');
-  //Img.Picture.Bitmap.LoadFromRawImage(bmp.RawImage, false);
+  Img.Width := Form1.Panel1.Height;
+  Img.Height := Form1.Panel1.Height;
+  Img.Parent := Form1.Panel1;
 
-  //DockButton.Width := frDock.pnDock.Width;
+  img.Picture.Assign(bmp.Bitmap);
+
   bmp.Free;
 end;
 
