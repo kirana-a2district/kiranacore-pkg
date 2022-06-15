@@ -6,7 +6,7 @@ interface
 
 uses
   Classes,SysUtils,FileUtil,Forms,Controls,Graphics,Dialogs,ComCtrls,
-  ExtCtrls, WindowListUtils, xwindowlist, x, xlib;
+  ExtCtrls, WindowListUtils, xwindowlist, x, xlib, BGRABitmap;
 
 type
 
@@ -45,10 +45,10 @@ implementation
 
 constructor TMyWindow.Create(AXWindowList: TXWindowList; AWindow: TWindow);
 var
-  bmp: TBitmap;
+  bmp: TBGRABitmap;
 begin
   inherited Create(AXWindowList, AWindow);
-  Img := TImage.Create(Form1);
+  //Img := TImage.Create(Form1);
 
   //ShowMessage('something happen');
 
@@ -57,6 +57,7 @@ begin
   //Img.Height := Form1.Panel1.Height;
   //Img.Parent := Form1.Panel1;
   //Form1.Image1.Picture.Bitmap.BeginUpdate();
+  bmp.Draw(Form1.Image1.Canvas, 0, 0);
   //Form1.Image1.Canvas.Draw(0, 0, bmp);
   //Form1.Image1.Picture.Bitmap.EndUpdate();
   //bmp.SaveToFile(ExtractFilePath(Application.ExeName)+'moyang');

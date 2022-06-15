@@ -33,19 +33,21 @@
         </Mode0>
       </Modes>
     </RunParams>
-    <RequiredPackages Count="2">
+    <RequiredPackages Count="3">
       <Item1>
-        <PackageName Value="kiranacorepkg"/>
+        <PackageName Value="BGRABitmapPack"/>
       </Item1>
       <Item2>
-        <PackageName Value="LCL"/>
+        <PackageName Value="kiranacorepkg"/>
       </Item2>
+      <Item3>
+        <PackageName Value="LCL"/>
+      </Item3>
     </RequiredPackages>
     <Units Count="19">
       <Unit0>
         <Filename Value="project1.lpr"/>
         <IsPartOfProject Value="True"/>
-        <TopLine Value="2"/>
         <CursorPos X="14" Y="10"/>
         <UsageCount Value="61"/>
         <Loaded Value="True"/>
@@ -57,9 +59,10 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
         <UnitName Value="Unit1"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
-        <TopLine Value="53"/>
-        <CursorPos X="25" Y="62"/>
+        <TopLine Value="50"/>
+        <CursorPos X="37" Y="60"/>
         <UsageCount Value="61"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
@@ -175,9 +178,8 @@
       <Unit17>
         <Filename Value="../../src/windowlistutils.pas"/>
         <UnitName Value="WindowListUtils"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="2"/>
-        <TopLine Value="95"/>
+        <TopLine Value="158"/>
         <CursorPos X="16" Y="107"/>
         <UsageCount Value="13"/>
         <Loaded Value="True"/>
@@ -191,7 +193,7 @@
         <Loaded Value="True"/>
       </Unit18>
     </Units>
-    <JumpHistory Count="21" HistoryIndex="20">
+    <JumpHistory Count="23" HistoryIndex="22">
       <Position1>
         <Filename Value="unit1.pas"/>
         <Caret Line="116" Column="39" TopLine="102"/>
@@ -210,72 +212,80 @@
       </Position4>
       <Position5>
         <Filename Value="unit1.pas"/>
-        <Caret Line="9" Column="44" TopLine="16"/>
+        <Caret Line="60" Column="44" TopLine="54"/>
       </Position5>
       <Position6>
         <Filename Value="unit1.pas"/>
-        <Caret Line="15" Column="17" TopLine="49"/>
+        <Caret Line="82" Column="43" TopLine="52"/>
       </Position6>
       <Position7>
-        <Filename Value="unit1.pas"/>
-        <Caret Line="60" Column="44" TopLine="54"/>
+        <Filename Value="../../src/windowlistutils.pas"/>
+        <Caret Line="96" TopLine="89"/>
       </Position7>
       <Position8>
         <Filename Value="unit1.pas"/>
-        <Caret Line="82" Column="43" TopLine="52"/>
+        <Caret Line="62" Column="22" TopLine="53"/>
       </Position8>
       <Position9>
         <Filename Value="../../src/windowlistutils.pas"/>
-        <Caret Line="96" TopLine="89"/>
+        <Caret Line="263" TopLine="256"/>
       </Position9>
       <Position10>
-        <Filename Value="unit1.pas"/>
-        <Caret Line="62" Column="22" TopLine="53"/>
+        <Filename Value="../../src/windowlistutils.pas"/>
+        <Caret Line="153" TopLine="142"/>
       </Position10>
       <Position11>
         <Filename Value="../../src/windowlistutils.pas"/>
-        <Caret Line="263" TopLine="256"/>
+        <Caret Line="263" TopLine="255"/>
       </Position11>
       <Position12>
-        <Filename Value="../../src/windowlistutils.pas"/>
-        <Caret Line="153" TopLine="142"/>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="55" TopLine="53"/>
       </Position12>
       <Position13>
-        <Filename Value="../../src/windowlistutils.pas"/>
-        <Caret Line="263" TopLine="255"/>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="147" TopLine="139"/>
       </Position13>
       <Position14>
         <Filename Value="unit1.pas"/>
-        <Caret Line="55" TopLine="53"/>
+        <Caret Line="63" Column="21" TopLine="46"/>
       </Position14>
       <Position15>
-        <Filename Value="unit1.pas"/>
-        <Caret Line="147" TopLine="139"/>
+        <Filename Value="../../src/windowlistutils.pas"/>
+        <Caret Line="153" Column="20" TopLine="145"/>
       </Position15>
       <Position16>
-        <Filename Value="unit1.pas"/>
-        <Caret Line="63" Column="21" TopLine="46"/>
+        <Filename Value="../../src/windowlistutils.pas"/>
+        <Caret Line="155" Column="9" TopLine="148"/>
       </Position16>
       <Position17>
         <Filename Value="../../src/windowlistutils.pas"/>
-        <Caret Line="153" Column="20" TopLine="145"/>
+        <Caret Line="158" Column="19" TopLine="144"/>
       </Position17>
       <Position18>
-        <Filename Value="../../src/windowlistutils.pas"/>
-        <Caret Line="155" Column="9" TopLine="148"/>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="62" Column="25" TopLine="53"/>
       </Position18>
       <Position19>
         <Filename Value="../../src/windowlistutils.pas"/>
-        <Caret Line="158" Column="19" TopLine="144"/>
+        <Caret Line="96" Column="26" TopLine="82"/>
       </Position19>
       <Position20>
         <Filename Value="unit1.pas"/>
-        <Caret Line="62" Column="25" TopLine="53"/>
+        <Caret Line="60" Column="6" TopLine="50"/>
       </Position20>
       <Position21>
-        <Filename Value="../../src/windowlistutils.pas"/>
-        <Caret Line="96" Column="26" TopLine="82"/>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="9" Column="62" TopLine="49"/>
       </Position21>
+      <Position22>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="48" Column="19" TopLine="53"/>
+      </Position22>
+      <Position23>
+        <Filename Value="unit1.pas"/>
+        <Caret Line="60" Column="31" TopLine="50"/>
+      </Position23>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>

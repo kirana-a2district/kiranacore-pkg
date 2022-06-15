@@ -83,41 +83,69 @@ begin
   fGeometry := fXWindowList.GetWindowRect(fWindow);
 end;
 
+{ in case useful later }
+//function ReadBitmap(Val: PByte; W, H, Size: integer): TBGRABitmap;
+//var
+//  bmp: TBGRABitmap;
+//  a, r, g, b: byte;
+//  argb: PByte;
+//  i, f, x, y: Integer;
+//  imgBuffer: TBytes;
+//begin
+//  bmp := TBGRABitmap.Create(w, h);
+//  SetLength(imgBuffer, Length(TBytes(Val)) div 2);
+//  argb := PByte(imgBuffer);
+//  i := 0;
+//  while i < Length(TBytes(Val)) div 2 do
+//  begin
+//    argb[i] := Val[(i*2)];
+//    argb[i+1] := Val[(i*2)+1];
+//    argb[i+2] := Val[(i*2)+2];
+//    argb[i+3] := Val[(i*2)+3];
+//    i += 4;
+//  end;
+//  for y := 0 to H -1 do
+//  begin
+//    for x := 0 to W -1 do
+//    begin
+//      a := argb[3];
+//      r := argb[2];
+//      g := argb[1];
+//      b := argb[0];
+//      //bmp.Canvas.DrawPixel(x, y, FPImage.FPColor(r, g, b, a));
+//      bmp.DrawPixel(x, y, BGRA(r, g, b, a));
+//
+//      Inc(argb, 4);
+//    end;
+//  end;
+//
+//  Result := bmp;
+//end;
+
 function ReadBitmap(Val: PByte; W, H, Size: integer): TBGRABitmap;
 var
   bmp: TBGRABitmap;
-  a, r, g, b: byte;
   argb: PByte;
-  i, f, x, y: Integer;
+  pdest: PBGRAPixel;
+  x, y, i: Integer;
   imgBuffer: TBytes;
 begin
   bmp := TBGRABitmap.Create(w, h);
-  SetLength(imgBuffer, Length(TBytes(Val)) div 2);
-  argb := PByte(imgBuffer);
-  i := 0;
-  while i < Length(TBytes(Val)) div 2 do
-  begin
-    argb[i] := Val[(i*2)];
-    argb[i+1] := Val[(i*2)+1];
-    argb[i+2] := Val[(i*2)+2];
-    argb[i+3] := Val[(i*2)+3];
-    i += 4;
-  end;
+  argb := Val;
   for y := 0 to H -1 do
   begin
+    pdest := bmp.ScanLine[y];
     for x := 0 to W -1 do
     begin
-      a := argb[3];
-      r := argb[2];
-      g := argb[1];
-      b := argb[0];
-      //bmp.Canvas.DrawPixel(x, y, FPImage.FPColor(r, g, b, a));
-      bmp.DrawPixel(x, y, BGRA(r, g, b, a));
-
-      Inc(argb, 4);
+      pdest^.alpha := argb[3];
+      pdest^.red := argb[2];
+      pdest^.green := argb[1];
+      pdest^.blue := argb[0];
+      Inc(argb, {$IFDEF CPU64}8{$ELSE}4{$ENDIF});
+      inc(pdest);
     end;
   end;
-
+  bmp.InvalidateBitmap;
   Result := bmp;
 end;
 
@@ -131,6 +159,7 @@ var
   PropResult: boolean;
   i: integer;
   Width, Height, Size: Cardinal;
+  ms: TMemoryStream;
 begin
   Width := 0;
   Height := 0;
@@ -159,6 +188,17 @@ begin
   begin
     Result := ReadBitmap(Ptr, Width, Height, Size);
   end;
+
+  //ms := TMemoryStream.Create;
+  //try
+  //  ms.Position := 0;
+  //
+  //  ms.WriteBuffer(Ptr, Size);
+  //  ms.SaveToFile(ExtractFilePath(ParamStr(0)) + 'dumpedimages/w'+Width.ToString+'h'+Height.ToString+'_'+fWindowPID.ToString);
+  //finally
+  //  ms.Free;
+  //end;
+
   if Assigned(Ptr) then XFree(Ptr);
 end;
 
