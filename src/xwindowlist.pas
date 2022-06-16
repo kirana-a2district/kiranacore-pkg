@@ -5,7 +5,7 @@ unit xwindowlist;
 interface
 
 uses
-  Classes, SysUtils, x, xlib, xutil, unixtype, fgl;
+  Classes, SysUtils, x, xlib, xutil, unixtype, fgl, xatom;
 
 type
 
@@ -36,6 +36,7 @@ type
     function GetWindowHost(Window: TWindow): string;
     function GetWindowRect(Window: TWindow): TRect;
     procedure ActivateWindow(Window: TWindow);
+    procedure MaximizeWindow(Window: TWindow);
   end;
 
   TWindowArray = array[0..MaxListSize] of TWindow;
@@ -46,6 +47,7 @@ function GetProp(Dpy: PDisplay; Win: TWindow; Prop: TAtom; out Value: string; Of
 function GetState(Dpy: PDisplay; Win: TWindow): Cardinal;
 function GetDesktop(Dpy: PDisplay; Win: TWindow): Cardinal;
 function SetDesktop(Dpy: PDisplay; Desktop: Cardinal): Boolean;
+function GetSkipTaskbar(Dpy: PDisplay; Win: TWindow): string;
 
 threadvar GotBadwindow: boolean;
 threadvar OldHandler: TXErrorHandler;
@@ -110,6 +112,56 @@ begin
     Result := 0
   else if not GetProp(Dpy, Win, A, Result) then
     Result := 0;
+end;
+
+{
+this block is a piece of useless junk, XLib documentation is confusing af,
+focusing on this function is totally waste of a time. Just focus other features.
+}
+function GetSkipTaskbar(Dpy: PDisplay; Win: TWindow): string;
+var
+  atoms: PAtom;
+  numberatom: Cardinal;
+  atomname: string;
+  i, j: integer;
+  ActualTypeReturn: TAtom;
+  ActualFormatReturn: LongInt;
+  NItemsReturn, BytesAfterReturn: Cardinal;
+  Ptr: PByte;
+begin
+  Result := '';
+  if XGetWindowProperty(Dpy, Win, XInternAtom(Dpy, '_NET_WM_STATE', LongBool(0)), 0, 10, LongBool(0), AnyPropertyType,
+        @ActualTypeReturn, @ActualFormatReturn, @NItemsReturn, @BytesAfterReturn, @Ptr) = Success then
+  begin
+    for i := 0 to Length(TBytes(Ptr)) -1 do
+    begin
+      //if Ptr[i] = XInternAtom(Dpy, '_NET_WM_STATE_SKIP_TASKBAR', LongBool(0)) then
+      { this doesn't returned _NET_WM_STATE related atoms but a piece of random crap }
+        Result += XGetAtomName(Dpy ,Ptr[i]) + ';';
+    end;
+  end;
+  //Atoms := XListProperties(Dpy, Win, @numberatom);
+  //for i := 0 to numberatom -1 do
+  //begin
+  //  atomname := XGetAtomName(Dpy, atoms[i]);
+  //  if atomname.Equals('_NET_WM_STATE') then
+  //  begin
+  //    if XGetWindowProperty(Dpy, Win, atoms[i], 0, 10, LongBool(0), AnyPropertyType,
+  //      @ActualTypeReturn, @ActualFormatReturn, @NItemsReturn, @BytesAfterReturn, @Ptr) = Success then
+  //    begin
+  //      for j := 0 to Length(TBytes(Ptr)) -1 do
+  //      begin
+  //        if atoms[i] = Ptr[j] then
+  //          Result += XGetAtomName(Dpy, Ptr[j]) + ';';
+  //      end;
+  //      //if XGetAtomName(Dpy, ActualTypeReturn) = atomname then
+  //        //Result += NItemsReturn.ToString + '/' + atomname + ';';
+  //      if Assigned(Ptr) then
+  //        XFree(Ptr);
+  //    end;
+  //  end;
+  //end;
+
 end;
 
 function GetDesktop(Dpy: PDisplay; Win: TWindow): Cardinal;
@@ -374,6 +426,7 @@ begin
 
     atom := XInternAtom(fDisplay, '_NET_ACTIVE_WINDOW', False);
 
+
     xev.xclient._type := ClientMessage;
     xev.xclient.serial := 0;
     xev.xclient.send_event := 1;
@@ -395,6 +448,54 @@ begin
     XFlush(fDisplay);
     XSync(fDisplay, False);
   end;
+end;
+
+procedure TXWindowList.MaximizeWindow(Window: TWindow);
+var
+  Desktop: Cardinal;
+  wmstate, wmmaxhorz, wmmaxvert: TAtom;
+  xev: TXEvent;
+  attr: TXWindowAttributes;
+begin
+  Desktop := GetDesktop(fDisplay, Window);
+  if Desktop <> $FFFFFFFF then
+  begin
+    SetDesktop(fDisplay, Desktop);
+    XGetWindowAttributes(fDisplay, Window, @attr);
+
+    if (attr.map_state = IsViewable) or ((attr.map_state = IsUnmapped) and (Getstate(fDisplay, Window) = IconicState)) then
+    begin
+      XMapWindow(fDisplay, Window);
+      XFlush(fDisplay);
+      XSync(fDisplay, False);
+    end;
+
+    wmstate := XInternAtom(display, '_NET_WM_STATE', False);
+    wmmaxhorz := XInternAtom(display, '_NET_WM_STATE_MAXIMIZED_HORZ', False);
+    wmmaxvert := XInternAtom(display, '_NET_WM_STATE_MAXIMIZED_VERT', False);
+
+    xev.xclient._type := ClientMessage;
+    xev.xclient.serial := 0;
+    xev.xclient.send_event := 1;
+    xev.xclient.display := fDisplay;
+    xev.xclient.window := Window;
+    xev.xclient.message_type := wmstate;
+    xev.xclient.format := 32;
+    xev.xclient.data.l[0] := 2;
+    xev.xclient.data.l[1] := wmmaxhorz;
+    xev.xclient.data.l[2] := wmmaxvert;
+    xev.xclient.data.l[3] := 1;
+
+
+    XSendEvent(fDisplay,
+      attr.root, False,
+      SubstructureRedirectMask or SubstructureNotifyMask,
+      @xev);
+
+    XFlush(fDisplay);
+    XSync(fDisplay, False);
+  end;
+  ActivateWindow(Window);
 end;
 
 end.

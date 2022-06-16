@@ -19,8 +19,10 @@ type
     fCommand: string;
     fWindowPID: cardinal;
     fGeometry: TRect;
+    fSkipTaskbar: string;
   public
     property State: string read fState;
+    property SkipTaskBar: string read fSkipTaskbar;
     property Host: string read fHost;
     property Command: string read fCommand;
     property WindowPID: cardinal read fWindowPID;
@@ -30,6 +32,7 @@ type
     destructor Destroy; override;
     procedure ActivateWindow;
     procedure MinimizeWindow;
+    procedure MaximizeWindow;
     function FetchAtomNames: string;
     procedure UpdateInformation;
     function GetIcon: TBGRABitmap;
@@ -72,12 +75,18 @@ begin
   inherited Destroy;
 end;
 
+procedure TWindowData.MaximizeWindow;
+begin
+  fXWindowList.MaximizeWindow(fWindow);
+end;
+
 procedure TWindowData.UpdateInformation;
 begin
   fWindowPID := fXWindowList.GetWindowPID(fWindow);
   fName := fXWindowList.GetWindowName(fWindow);
   fState := fXWindowList.GetWindowState(fWindow);
   fHost := fXWindowList.GetWindowHost(fWindow);
+  fSkipTaskbar := GetSkipTaskbar(fXWindowList.Display, fWindow);
   if fWindowPID <> 0 then
     fCommand := fXWindowList.GetWindowCmd(fWindowPID);
   fGeometry := fXWindowList.GetWindowRect(fWindow);
@@ -127,8 +136,7 @@ var
   bmp: TBGRABitmap;
   argb: PByte;
   pdest: PBGRAPixel;
-  x, y, i: Integer;
-  imgBuffer: TBytes;
+  x, y: Integer;
 begin
   bmp := TBGRABitmap.Create(w, h);
   argb := Val;
@@ -157,9 +165,9 @@ var
   Ptr: PByte;
   IconAtom: TAtom;
   PropResult: boolean;
-  i: integer;
+  //i: integer;
   Width, Height, Size: Cardinal;
-  ms: TMemoryStream;
+  //ms: TMemoryStream;
 begin
   Width := 0;
   Height := 0;
@@ -168,6 +176,8 @@ begin
   PropResult := XGetWindowProperty(fXWindowList.Display, fWindow, IconAtom,
     0, 1, 0, AnyPropertyType, @ActualTypeReturn, @ActualFormatReturn,
     @NItemsReturn, @BytesAfterReturn, @Ptr) = Success;
+  if Ptr <> nil  then
+  begin
   if PropResult then
     Width := PCardinal(Ptr)^;
   if Assigned(Ptr) then XFree(Ptr);
@@ -200,6 +210,8 @@ begin
   //end;
 
   if Assigned(Ptr) then XFree(Ptr);
+
+  end;
 end;
 
 function TWindowData.FetchAtomNames: string;
@@ -286,10 +298,11 @@ begin
     DoLater := True;
     for j := 0 to fItems.Count -1 do
     begin
-      if (fXWindowList.GetWindowPID(fXWindowList.WindowList[i]) = fItems[j].WindowPID)
+      if (fXWindowList.WindowList[i] = fItems[j].fWindow)
         then
       begin
-        if i <> currentIndex then
+        if (i <> currentIndex) and
+          (fXWindowList.GetWindowCmd(fXWindowList.GetWindowPID(fXWindowList.WindowList[i])) <> ParamStr(0)) then
         begin
           currentIndex := 1;
           ActiveIndex := j;
@@ -300,7 +313,9 @@ begin
     end;
     if DoLater then
     begin
-      if IsHasIcon(fXWindowList.WindowList[i]) then
+      if IsHasIcon(fXWindowList.WindowList[i]) and
+        (not fXWindowList.GetWindowCmd(fXWindowList.GetWindowPID(
+        fXWindowList.WindowList[i])).Contains(ParamStr(0))) then
       begin
         if fWindowDataClass <> nil then
           WinItem := TWindowDataClass(fWindowDataClass).Create(fXWindowList, fXWindowList.WindowList[i])
@@ -317,7 +332,7 @@ begin
     DoLater := True;
     for j := 0 to fXWindowList.WindowList.Count -1 do
     begin
-      if (fItems[i].WindowPID = fXWindowList.GetWindowPID(fXWindowList.WindowList[j])) then
+      if (fItems[i].fWindow = fXWindowList.WindowList[j]) then
       begin
         DoLater := False;
       end
