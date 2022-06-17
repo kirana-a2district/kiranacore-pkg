@@ -99,6 +99,46 @@ begin
   end;
 end;
 
+function ParseArgs(s: string; mode: integer): string;
+var
+  i: Integer;
+  L: TStringList;
+begin
+  Result := '';
+  L := TStringList.Create;
+  try
+    L.Delimiter := ' ';
+    L.DelimitedText := StringReplace(s, '''', '"', [rfReplaceAll]);
+    if mode = 0 then
+    begin
+      for i := 0 to L.Count-1 do
+      begin
+        if i = 0 then
+          Result += L[i]
+        else
+          Result += ' ' + L[i];
+      end;
+    end
+    else if (mode = 1) and (L.Count > 0) then
+    begin
+      if L.Count > 0 then
+        Result := L[0];
+    end
+    else if (mode = 2) and (L.Count > 0) then
+    begin
+      for i := 1 to L.Count-1 do
+      begin
+        if i = 1 then
+          Result += L[i]
+        else
+          Result += ' ' + L[i];
+      end;
+    end;
+  finally
+    L.Free;
+  end;
+end;
+
 procedure TSystemAppMonitor.AddApplication(const AFilePath: string);
 var
   DesktopFile: TIniFile;
@@ -133,8 +173,10 @@ begin
   Item.Comment := DesktopFile.ReadString(DFSECTION, 'Comment', '');
   Item.IconName := DesktopFile.ReadString(DFSECTION, 'Icon', '');
   Item.StartupWMClass := DesktopFile.ReadString(DFSECTION, 'StartupWMClass', '');
-  Item.Exec := DesktopFile.ReadString(DFSECTION, 'Exec', '');
+  Item.Exec := ParseArgs(DesktopFile.ReadString(DFSECTION, 'Exec', ''), 1);
   //Item.Args := ;
+  Item.ArgStr := ParseArgs(DesktopFile.ReadString(DFSECTION, 'Exec', ''), 2)
+    .Replace('%U', '', [rfReplaceAll]);
   Items.Add(Item);
   //ShowMessage(Item.Name);
 end;

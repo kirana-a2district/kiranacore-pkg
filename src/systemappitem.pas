@@ -18,6 +18,7 @@ type
     StartupWMClass: string;
     Exec: string;
     Args: TStrings;
+    ArgStr: string;
     constructor Create;
     destructor Destroy; override;
   end;

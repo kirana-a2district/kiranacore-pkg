@@ -31,6 +31,10 @@
         <Filename Value="../src/xwindowlist.pas"/>
         <UnitName Value="xwindowlist"/>
       </Item>
+      <Item>
+        <Filename Value="../src/xeventwatcher.pas"/>
+        <UnitName Value="XEventWatcher"/>
+      </Item>
     </Files>
     <RequiredPkgs>
       <Item>

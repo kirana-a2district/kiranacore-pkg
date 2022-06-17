@@ -9,7 +9,7 @@ interface
 
 uses
   DirWatcher, SystemAppItem, SystemAppMonitor, WindowListUtils, xwindowlist, 
-  LazarusPackageIntf;
+  XEventWatcher, LazarusPackageIntf;
 
 implementation
 

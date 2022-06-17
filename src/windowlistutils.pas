@@ -5,9 +5,13 @@ unit WindowListUtils;
 interface
 
 uses
-  Classes, SysUtils, xwindowlist, xlib, x,  fgl, xatom, Dialogs, ctypes,
-  Graphics,  GraphType, LCLType, LCLIntf, FPImage, BGRABitmap, BGRABitmapTypes;
+  Classes, SysUtils, xwindowlist, xlib, x,  fgl, xatom, Dialogs, ctypes, Forms,
+  Graphics,  GraphType, LCLType, LCLIntf, FPImage, BGRABitmap, BGRABitmapTypes,
+  XEventWatcher;
 
+const
+  WindowManagerEventMask = SubstructureRedirectMask or SubstructureNotifyMask or
+    ColormapChangeMask or EnterWindowMask;
 type
   TWindowData = class(TPersistent)
   private
@@ -33,6 +37,7 @@ type
     procedure ActivateWindow;
     procedure MinimizeWindow;
     procedure MaximizeWindow;
+    procedure CloseWindow;
     function FetchAtomNames: string;
     procedure UpdateInformation;
     function GetIcon: TBGRABitmap;
@@ -47,6 +52,7 @@ type
     fItems: TWindowDataList;
     fXWindowList: TXWindowList;
     fWindowDataClass: TWindowDataClass;
+    fEventThread: TXEventWatcherThread;
     function getCount: integer;
     function getItems(const index: integer): TWindowData;
     function IsHasIcon(AWindow: TWindow): boolean;
@@ -56,6 +62,8 @@ type
     property Items: TWindowDataList read fItems;
     property Values[const index: integer]: TWindowData read getItems; default;
     procedure UpdateDataList;
+    procedure PauseUpdate;
+    procedure ResumeUpdate;
     constructor Create(WindowDataClass: TWindowDataClass = nil);
     destructor Destroy; override;
   end;
@@ -78,6 +86,11 @@ end;
 procedure TWindowData.MaximizeWindow;
 begin
   fXWindowList.MaximizeWindow(fWindow);
+end;
+
+procedure TWindowData.CloseWindow;
+begin
+  fXWindowList.CloseWindow(fWindow);
 end;
 
 procedure TWindowData.UpdateInformation;
@@ -256,7 +269,7 @@ begin
   for i := 0 to numberatom -1 do
   begin
     atomname := XGetAtomName(fXWindowList.Display, atoms[i]);
-    if atomname.Equals('_NET_WM_ICON') then
+    if atomname.Equals('_NET_WM_ICON_GEOMETRY') then
       Result := true;
   end;
 end;
@@ -269,6 +282,16 @@ end;
 function TWindowList.getCount: integer;
 begin
   Result := fItems.Count;
+end;
+
+procedure TWindowList.PauseUpdate;
+begin
+  fEventThread.Paused := True;
+end;
+
+procedure TWindowList.ResumeUpdate;
+begin
+  fEventThread.Paused := False;
 end;
 
 procedure TWindowList.UpdateDataList;
@@ -301,12 +324,13 @@ begin
       if (fXWindowList.WindowList[i] = fItems[j].fWindow)
         then
       begin
-        if (i <> currentIndex) and
-          (fXWindowList.GetWindowCmd(fXWindowList.GetWindowPID(fXWindowList.WindowList[i])) <> ParamStr(0)) then
-        begin
-          currentIndex := 1;
-          ActiveIndex := j;
-        end;
+        //if (i <> currentIndex) and
+        //  (fXWindowList.GetWindowCmd(fXWindowList.GetWindowPID(fXWindowList.WindowList[i])) <> ParamStr(0)) then
+        //begin
+        //  currentIndex = i;
+        //  ActiveIndex := j;
+        //end;
+        ActiveIndex := j;
         fItems[j].UpdateInformation;
         DoLater := False;
       end;
@@ -356,10 +380,17 @@ begin
   fItems := TWindowDataList.Create;
   fXWindowList := TXWindowList.Create;
   fWindowDataClass := WindowDataClass;
+
+  {to-do: make independent iterator it won't require TTimer }
+  fEventThread := TXEventWatcherThread.Create(True);
+  fEventThread.Display := fXWindowList.Display;
+  fEventThread.NotifyUpdate := @UpdateDataList;
+  fEventThread.Start;
 end;
 
 destructor TWindowList.Destroy;
 begin
+  fEventThread.Terminate;
   FreeAndNil(fItems);
   FreeAndNil(fXWindowList);
   inherited Destroy;

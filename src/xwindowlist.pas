@@ -37,6 +37,7 @@ type
     function GetWindowRect(Window: TWindow): TRect;
     procedure ActivateWindow(Window: TWindow);
     procedure MaximizeWindow(Window: TWindow);
+    procedure CloseWindow(Window: TWindow);
   end;
 
   TWindowArray = array[0..MaxListSize] of TWindow;
@@ -448,6 +449,48 @@ begin
     XFlush(fDisplay);
     XSync(fDisplay, False);
   end;
+end;
+
+procedure TXWindowList.CloseWindow(Window: TWindow);
+var
+  Desktop: Cardinal;
+  netclose: TAtom;
+  xev: TXEvent;
+  attr: TXWindowAttributes;
+begin
+  Desktop := GetDesktop(fDisplay, Window);
+  if Desktop <> $FFFFFFFF then
+  begin
+    SetDesktop(fDisplay, Desktop);
+    XGetWindowAttributes(fDisplay, Window, @attr);
+
+    if (attr.map_state = IsViewable) or ((attr.map_state = IsUnmapped) and (Getstate(fDisplay, Window) = IconicState)) then
+    begin
+      XMapWindow(fDisplay, Window);
+      XFlush(fDisplay);
+      XSync(fDisplay, False);
+    end;
+
+    netclose := XInternAtom(display, '_NET_CLOSE_WINDOW', False);
+
+    xev.xclient._type := ClientMessage;
+    xev.xclient.serial := 0;
+    xev.xclient.send_event := 1;
+    xev.xclient.display := fDisplay;
+    xev.xclient.window := Window;
+    xev.xclient.message_type := netclose;
+    xev.xclient.format := 32;
+
+
+    XSendEvent(fDisplay,
+      attr.root, False,
+      SubstructureRedirectMask or SubstructureNotifyMask,
+      @xev);
+
+    XFlush(fDisplay);
+    XSync(fDisplay, False);
+  end;
+  ActivateWindow(Window);
 end;
 
 procedure TXWindowList.MaximizeWindow(Window: TWindow);
