@@ -34,6 +34,7 @@ type
     property Geometry: TRect read fGeometry;
     constructor Create(AXWindowList: TXWindowList; AWindow: TWindow); virtual;
     destructor Destroy; override;
+    procedure DoActiveChange(IsActive: boolean); virtual; abstract;
     procedure ActivateWindow;
     procedure MinimizeWindow;
     procedure MaximizeWindow;
@@ -369,6 +370,14 @@ begin
   for i := 0 to DeleteList.Count -1 do
   begin
     fItems.Remove(DeleteList[i]);
+  end;
+
+  for i := 0 to Items.Count -1 do
+  begin
+    if i = ActiveIndex then
+      Items[i].DoActiveChange(true)
+    else
+      Items[i].DoActiveChange(false);
   end;
 
   FreeAndNil(DeleteList);
