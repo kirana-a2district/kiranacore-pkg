@@ -138,7 +138,7 @@ begin
       end;
       if UpdateCount > 0 then
       begin
-        UpdatePaths;
+        Synchronize(@UpdatePaths);
       end;
     end;
   finally

@@ -59,6 +59,7 @@ type
     function IsHasIcon(AWindow: TWindow): boolean;
   public
     ActiveIndex: integer;
+    property XWindowListData: TXWindowList read fXWindowList;
     property Count: integer read getCount;
     property Items: TWindowDataList read fItems;
     property Values[const index: integer]: TWindowData read getItems; default;
@@ -147,7 +148,7 @@ end;
 
 function ReadBitmap(Val: PByte; W, H, Size: integer): TBGRABitmap;
 var
-  bmp: TBGRABitmap;
+  bmp, bmpsc: TBGRABitmap;
   argb: PByte;
   pdest: PBGRAPixel;
   x, y: Integer;
@@ -168,9 +169,17 @@ begin
     end;
   end;
   bmp.InvalidateBitmap;
-  Result := bmp;
+  if W > 64 then
+  begin
+    bmpsc := bmp.Resample(32, 32);
+    bmp.Free;
+    Result := bmpsc;
+  end
+  else
+    Result := bmp;
 end;
 
+// to-do: fix the big size
 function TWindowData.GetIcon: TBGRABitmap;
 var
   ActualTypeReturn: TAtom;

@@ -5,7 +5,7 @@ unit xwindowlist;
 interface
 
 uses
-  Classes, SysUtils, x, xlib, xutil, unixtype, fgl, xatom;
+  Classes, SysUtils, x, xlib, xutil, unixtype, fgl, xatom, Dialogs;
 
 type
 
@@ -37,7 +37,10 @@ type
     function GetWindowRect(Window: TWindow): TRect;
     procedure ActivateWindow(Window: TWindow);
     procedure MaximizeWindow(Window: TWindow);
+    procedure SetDockedMode(Window: TWindow);
+    procedure SetStrut(Window: TWindow; W, H: integer);
     procedure CloseWindow(Window: TWindow);
+    procedure OverrideRedirect(Window: TWindow);
   end;
 
   TWindowArray = array[0..MaxListSize] of TWindow;
@@ -539,6 +542,99 @@ begin
     XSync(fDisplay, False);
   end;
   ActivateWindow(Window);
+end;
+
+procedure TXWindowList.OverrideRedirect(Window: TWindow);
+var
+  Desktop: Cardinal;
+  wmstate, wmmaxhorz, wmmaxvert: TAtom;
+  xev: TXEvent;
+  attr: TXSetWindowAttributes;
+  prop: culong;
+begin
+  Desktop := GetDesktop(fDisplay, Window);
+
+
+    attr.override_redirect := LongInt(1);
+
+    XChangeWindowAttributes(fDisplay, Window, CWOverrideRedirect, @attr);
+    //XUnmapWindow(fDisplay, Window);
+    XMapWindow(fDisplay, Window);
+
+end;
+
+procedure TXWindowList.SetStrut(Window: TWindow; W, H: integer);
+var
+  wmstrut, wmstrutpartial: TAtom;
+  prop: culong;
+  propsets: array[0..11] of integer = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+begin
+
+
+
+  (*
+  int insets[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  insets[2] = height;
+  insets[8] = 0;
+  insets[9] = width;
+
+  *)
+
+  {
+
+  XChangeProperty(display,
+                winId(),
+                XInternAtom(QX11Info::display(), "_NET_WM_STRUT", False),
+                XA_CARDINAL ,
+                32,
+                PropModeReplace,
+                (unsigned char *)&insets, 4);
+
+   XChangeProperty(display,
+                 winId(),
+                XInternAtom(QX11Info::display(), "_NET_WM_STRUT_PARTIAL", False),
+                XA_CARDINAL ,
+                32,
+                PropModeReplace,
+                (unsigned char *)&insets, 12);
+
+  }
+  // left 0, right 1, top 2, bottom 3, left_start_y 4, left_end_y 5,
+  // right_start_y 6, right_end_y 7, top_start_x 8, top_end_x 9, bottom_start_x 10
+  //propsets[2] := H;
+  propsets[6] := h;
+  propsets[9] := W;
+
+  wmstrut := XInternAtom(display, '_NET_WM_STRUT', False);
+  wmstrutpartial := XInternAtom(display, '_NET_WM_STRUT_PARTIAL', False);
+
+  XChangeProperty(fDisplay, Window, wmstrut, XA_CARDINAL,
+    32, PropModeReplace, @propsets, 4);
+  XMapWindow(fDisplay, Window);
+
+  XChangeProperty(fDisplay, Window, wmstrutpartial, XA_CARDINAL,
+    32, PropModeReplace, @propsets, 12);
+  XMapWindow(fDisplay, Window);
+end;
+
+procedure TXWindowList.SetDockedMode(Window: TWindow);
+var
+  wmtype, wmdesktop, wmdock: TAtom;
+  prop: culong;
+begin
+  wmtype := XInternAtom(display, '_NET_WM_WINDOW_TYPE', False);
+  wmdock := XInternAtom(display, '_NET_WM_WINDOW_TYPE_DOCK', False);
+  wmdesktop := XInternAtom(display, '_NET_WM_DESKTOP', False);
+
+  prop := $FFFFFFFF;
+
+  XChangeProperty(fDisplay, Window, wmtype, XA_ATOM,
+    32, PropModeAppend, @wmdock, 1);
+  XMapWindow(fDisplay, Window);
+
+  XChangeProperty(fDisplay, Window, wmdesktop, XA_CARDINAL,
+    32, PropModeReplace, @prop, 1);
+  XMapWindow(fDisplay, Window);
 end;
 
 end.
