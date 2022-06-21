@@ -271,16 +271,30 @@ function TWindowList.IsHasIcon(AWindow: TWindow): boolean;
 var
   atoms: PAtom;
   numberatom: Cardinal;
+  prop: PAtom;
+  wmtype, wmdock, wmdesktop, da: TAtom;
+  di: integer;
+  dl: culong;
   atomname: string;
-  i: integer;
+  i, j: integer;
 begin
-  Result := false;
+  Result := True;
   Atoms := XListProperties(fXWindowList.Display, AWindow, @numberatom);
   for i := 0 to numberatom -1 do
   begin
     atomname := XGetAtomName(fXWindowList.Display, atoms[i]);
-    if atomname.Equals('_NET_WM_ICON_GEOMETRY') then
-      Result := true;
+    if atomname.Equals('_NET_WM_WINDOW_TYPE') then
+    for j := 0 to 8 do
+    begin
+      wmtype := XInternAtom(fXWindowList.Display, PChar(atomname), False);
+      XGetWindowProperty(fXWindowList.Display, AWindow, wmtype, 0, sizeof(TAtom), False,
+                                XA_ATOM, @da, @di, @dl, @dl, @prop);
+      wmdock := XInternAtom(fXWindowList.Display, '_NET_WM_WINDOW_TYPE_DOCK', False);
+      wmdesktop := XInternAtom(fXWindowList.Display, '_NET_WM_WINDOW_TYPE_DESKTOP', False);
+      if (prop[j] = wmdock) or (prop[j] = wmdesktop) then
+        Result := False;
+    end;
+
   end;
 end;
 
@@ -326,6 +340,7 @@ var
 begin
   fXWindowList.UpdateWindowList;
   currentIndex := 0;
+
   for i := 0 to fXWindowList.WindowList.Count -1 do
   begin
     DoLater := True;
@@ -347,7 +362,8 @@ begin
     end;
     if DoLater then
     begin
-      if IsHasIcon(fXWindowList.WindowList[i]) and
+      if
+      IsHasIcon(fXWindowList.WindowList[i]) and
         (not fXWindowList.GetWindowCmd(fXWindowList.GetWindowPID(
         fXWindowList.WindowList[i])).Contains(ParamStr(0))) then
       begin
