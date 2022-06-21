@@ -41,6 +41,7 @@ type
     procedure SetStrut(Window: TWindow; W, H: integer);
     procedure CloseWindow(Window: TWindow);
     procedure OverrideRedirect(Window: TWindow);
+    procedure SetIconGeometry(Window: TWindow; T, L, W, H: integer);
   end;
 
   TWindowArray = array[0..MaxListSize] of TWindow;
@@ -634,6 +635,25 @@ begin
 
   XChangeProperty(fDisplay, Window, wmdesktop, XA_CARDINAL,
     32, PropModeReplace, @prop, 1);
+  XMapWindow(fDisplay, Window);
+end;
+
+procedure TXWindowList.SetIconGeometry(Window: TWindow; T, L, W, H: integer);
+var
+  wmgeo: TAtom;
+  prop: culong;
+  propsets: array[0..3] of integer = (0, 0, 0, 0);
+begin
+  // x, y, width, height
+  propsets[0] := l;
+  propsets[1] := t;
+  propsets[2] := w;
+  propsets[3] := h;
+
+  wmgeo := XInternAtom(display, '_NET_WM_ICON_GEOMETRY', False);
+
+  XChangeProperty(fDisplay, Window, wmgeo, XA_CARDINAL,
+    32, PropModeReplace, @propsets, 4);
   XMapWindow(fDisplay, Window);
 end;
 

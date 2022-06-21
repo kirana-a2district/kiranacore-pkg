@@ -13,6 +13,7 @@ const
   WindowManagerEventMask = SubstructureRedirectMask or SubstructureNotifyMask or
     ColormapChangeMask or EnterWindowMask;
 type
+  TAtoms = array of TAtom;
   TWindowData = class(TPersistent)
   private
     fName: string;
@@ -38,6 +39,7 @@ type
     procedure ActivateWindow;
     procedure MinimizeWindow;
     procedure MaximizeWindow;
+    procedure SetIconGeometry(T, L, W, H: integer);
     procedure CloseWindow;
     function FetchAtomNames: string;
     procedure UpdateInformation;
@@ -105,6 +107,11 @@ begin
   if fWindowPID <> 0 then
     fCommand := fXWindowList.GetWindowCmd(fWindowPID);
   fGeometry := fXWindowList.GetWindowRect(fWindow);
+end;
+
+procedure TWindowData.SetIconGeometry(T, L, W, H: integer);
+begin
+  fXWindowList.SetIconGeometry(fWindow, t, l, w, h);
 end;
 
 { in case useful later }
@@ -272,10 +279,11 @@ var
   atoms: PAtom;
   numberatom: Cardinal;
   prop: PAtom;
-  wmtype, wmdock, wmdesktop, da: TAtom;
+  wmtype, wmdock, wmdesktop, wmpopup, wmtooltip, wmcombo, da: TAtom;
   di: integer;
   dl: culong;
   atomname: string;
+  temp: string;
   i, j: integer;
 begin
   Result := True;
@@ -284,15 +292,56 @@ begin
   begin
     atomname := XGetAtomName(fXWindowList.Display, atoms[i]);
     if atomname.Equals('_NET_WM_WINDOW_TYPE') then
-    for j := 0 to 8 do
     begin
       wmtype := XInternAtom(fXWindowList.Display, PChar(atomname), False);
       XGetWindowProperty(fXWindowList.Display, AWindow, wmtype, 0, sizeof(TAtom), False,
-                                XA_ATOM, @da, @di, @dl, @dl, @prop);
-      wmdock := XInternAtom(fXWindowList.Display, '_NET_WM_WINDOW_TYPE_DOCK', False);
-      wmdesktop := XInternAtom(fXWindowList.Display, '_NET_WM_WINDOW_TYPE_DESKTOP', False);
-      if (prop[j] = wmdock) or (prop[j] = wmdesktop) then
-        Result := False;
+        XA_ATOM, @da, @di, @dl, @dl, @prop);
+      for j := 0 to Length(TAtoms(prop)) -1 do
+      begin
+        //if j < 20 then
+        //  WriteLn(XGetAtomName(fXWindowList.Display ,prop[j]));
+
+        wmdock := XInternAtom(fXWindowList.Display, '_NET_WM_WINDOW_TYPE_DOCK', False);
+        wmdesktop := XInternAtom(fXWindowList.Display, '_NET_WM_WINDOW_TYPE_DESKTOP', False);
+        wmpopup := XInternAtom(fXWindowList.Display, '_NET_WM_WINDOW_TYPE_POPUP_MENU', False);
+        wmtooltip := XInternAtom(fXWindowList.Display, '_NET_WM_WINDOW_TYPE_TOOLTIP', False);
+        wmcombo := XInternAtom(fXWindowList.Display, '_NET_WM_WINDOW_TYPE_COMBO', False);
+
+        //if XGetAtomName(fXWindowList.Display ,prop[j]) = 'SECONDARY' then
+        //  Result := FALSE;
+        //Completion
+        //if fXWindowList.GetWindowName(AWindow) = 'Completion' then
+        //  WriteLn(XGetAtomName(fXWindowList.Display ,prop[j]));
+        if (prop[j] = wmdock) or (prop[j] = wmdesktop) or (prop[j] = wmpopup)
+          or (prop[j] = wmtooltip) or (prop[j] = wmcombo) then
+          Result := False;
+      end;
+
+    end
+    else if atomname.Equals('_NET_WM_STATE') then
+    begin
+
+      wmtype := XInternAtom(fXWindowList.Display, PChar(atomname), False);
+      XGetWindowProperty(fXWindowList.Display, AWindow, wmtype, 0, sizeof(TAtom), False,
+        XA_ATOM, @da, @di, @dl, @dl, @prop);
+      { I have no idea what is happening with X11, it always grabbed Lazarus completion }
+      if XGetAtomName(fXWindowList.Display, prop[0]) = '_NET_WM_STATE_FOCUSED' then
+      for j := 0 to Length(TAtoms(prop)) -1 do
+      begin
+        temp := XGetAtomName(fXWindowList.Display ,prop[j]);
+        //if fXWindowList.GetWindowName(AWindow) = 'Stop (Ctrl+F2)' then
+        //  WriteLn(XGetAtomName(fXWindowList.Display ,prop[j]));
+        wmtooltip := XInternAtom(fXWindowList.Display, '_NET_WM_STATE_SKIPTASKBAR', False);
+        { I have no idea what is happening with X11 }
+        if
+          temp.ToUpper.Contains('_NET_WM_STATE_SKIPTASKBAR') or
+          (prop[j] = wmtooltip)
+          then
+        begin
+          Result := False;
+          WriteLn(fXWindowList.GetWindowName(AWindow));
+        end;
+      end;
     end;
 
   end;
