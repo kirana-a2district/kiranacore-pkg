@@ -177,6 +177,8 @@ begin
   //Item.Args := ;
   Item.ArgStr := ParseArgs(DesktopFile.ReadString(DFSECTION, 'Exec', ''), 2)
     .Replace('%U', '', [rfReplaceAll]);
+  Item.ArgStr := Item.ArgStr.Replace('%u', '',
+    [rfReplaceAll]);
   Items.Add(Item);
   //ShowMessage(Item.Name);
 end;

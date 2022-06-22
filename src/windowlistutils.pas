@@ -431,7 +431,7 @@ begin
     DoLater := True;
     for j := 0 to fXWindowList.WindowList.Count -1 do
     begin
-      if (fItems[i].fWindow = fXWindowList.WindowList[j]) then
+      if (fItems[i].fWindow = fXWindowList.WindowList[j])  then
       begin
         DoLater := False;
       end
