@@ -59,6 +59,7 @@ var
   //NET_ACTIVE_WINDOW: TAtom;
   attr: TXSetWindowAttributes;
 begin
+  Display := XOpenDisplay(Pchar(GetEnvironmentVariable('DISPLAY')));
   root := RootWindow(Display, DefaultScreen(Display));
   //NET_ACTIVE_WINDOW := XInternAtom(Display, '_NET_ACTIVE_WINDOW', LongBool(1));
   attr.event_mask := StructureNotifyMask or SubstructureNotifyMask or ExposureMask;
@@ -85,7 +86,7 @@ begin
       Sleep(200);
     end;
   end;
-
+  if Assigned(Display) then XCloseDisplay(Display);
 end;
 
 constructor TXEventWatcherThread.Create(CreateSuspended: Boolean; const StackSize: SizeUInt =

@@ -1,11 +1,11 @@
-unit WindowListUtils;
+unit KiranaWindows;
 
 {$mode ObjFPC}{$H+}
 
 interface
 
 uses
-  Classes, SysUtils, xwindowlist, xlib, x,  fgl, xatom, Dialogs, ctypes, Forms,
+  Classes, SysUtils, XWindowUtils, xlib, x,  fgl, xatom, Dialogs, ctypes, Forms,
   Graphics,  GraphType, LCLType, LCLIntf, FPImage, BGRABitmap, BGRABitmapTypes,
   XEventWatcher;
 
@@ -17,7 +17,7 @@ type
   TWindowData = class(TPersistent)
   private
     fName: string;
-    fXWindowList: TXWindowList;
+    fXWindowList: TXWindowManager;
     fWindow: TWindow;
     fState: string;
     fHost: string;
@@ -33,7 +33,7 @@ type
     property WindowPID: cardinal read fWindowPID;
     property Name: string read fName;
     property Geometry: TRect read fGeometry;
-    constructor Create(AXWindowList: TXWindowList; AWindow: TWindow); virtual;
+    constructor Create(AXWindowList: TXWindowManager; AWindow: TWindow); virtual;
     destructor Destroy; override;
     procedure DoActiveChange(IsActive: boolean); virtual; abstract;
     procedure ActivateWindow;
@@ -53,7 +53,7 @@ type
   TWindowList = class(TPersistent)
   private
     fItems: TWindowDataList;
-    fXWindowList: TXWindowList;
+    fXWindowList: TXWindowManager;
     fWindowDataClass: TWindowDataClass;
     fEventThread: TXEventWatcherThread;
     function getCount: integer;
@@ -61,7 +61,7 @@ type
     function IsHasIcon(AWindow: TWindow): boolean;
   public
     ActiveIndex: integer;
-    property XWindowListData: TXWindowList read fXWindowList;
+    property XWindowListData: TXWindowManager read fXWindowList;
     property Count: integer read getCount;
     property Items: TWindowDataList read fItems;
     property Values[const index: integer]: TWindowData read getItems; default;
@@ -72,9 +72,11 @@ type
     destructor Destroy; override;
   end;
 
+var
+  ExcludeWindow: TWindow;
 implementation
 
-constructor TWindowData.Create(AXWindowList: TXWindowList; AWindow: TWindow);
+constructor TWindowData.Create(AXWindowList: TXWindowManager; AWindow: TWindow);
 begin
   inherited Create;
   fXWindowList := AXWindowList;
@@ -413,8 +415,7 @@ begin
     begin
       if
       IsHasIcon(fXWindowList.WindowList[i]) and
-        (not fXWindowList.GetWindowCmd(fXWindowList.GetWindowPID(
-        fXWindowList.WindowList[i])).Contains(ParamStr(0))) then
+        (fXWindowList.GetWindowPID(fXWindowList.WindowList[i]) <> fXWindowList.GetWindowPID(ExcludeWindow)) then
       begin
         if fWindowDataClass <> nil then
           WinItem := TWindowDataClass(fWindowDataClass).Create(fXWindowList, fXWindowList.WindowList[i])
@@ -461,12 +462,12 @@ constructor TWindowList.Create(WindowDataClass: TWindowDataClass = nil);
 begin
   inherited Create;
   fItems := TWindowDataList.Create;
-  fXWindowList := TXWindowList.Create;
+  fXWindowList := TXWindowManager.Create;
   fWindowDataClass := WindowDataClass;
 
   {to-do: make independent iterator it won't require TTimer }
   fEventThread := TXEventWatcherThread.Create(True);
-  fEventThread.Display := fXWindowList.Display;
+  //fEventThread.Display := fXWindowList.Display;
   fEventThread.NotifyUpdate := @UpdateDataList;
   fEventThread.Start;
 end;

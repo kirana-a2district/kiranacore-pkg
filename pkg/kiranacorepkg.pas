@@ -8,7 +8,7 @@ unit kiranacorepkg;
 interface
 
 uses
-  DirWatcher, SystemAppItem, SystemAppMonitor, WindowListUtils, xwindowlist, 
+  DirWatcher, SystemAppItem, SystemAppMonitor, KiranaWindows, XWindowUtils, 
   XEventWatcher, LazarusPackageIntf;
 
 implementation

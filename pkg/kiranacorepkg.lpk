@@ -24,12 +24,12 @@
         <UnitName Value="SystemAppMonitor"/>
       </Item>
       <Item>
-        <Filename Value="../src/windowlistutils.pas"/>
-        <UnitName Value="WindowListUtils"/>
+        <Filename Value="../src/kiranawindows.pas"/>
+        <UnitName Value="kiranawindows"/>
       </Item>
       <Item>
-        <Filename Value="../src/xwindowlist.pas"/>
-        <UnitName Value="xwindowlist"/>
+        <Filename Value="../src/xwindowutils.pas"/>
+        <UnitName Value="XWindowUtils"/>
       </Item>
       <Item>
         <Filename Value="../src/xeventwatcher.pas"/>
