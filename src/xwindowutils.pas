@@ -43,6 +43,7 @@ type
     procedure CloseWindow(Window: TWindow);
     procedure OverrideRedirect(Window: TWindow);
     function GetDesktopCount: integer;
+    procedure SetCurrentDesktop(DesktopIndex: Integer);
     { is this work? }
     procedure SetIconGeometry(Window: TWindow; T, L, W, H: integer);
   end;
@@ -181,18 +182,18 @@ begin
   A := XInternAtom(Dpy, '_NET_WM_DESKTOP', LongBool(1));
   if A = None then
     Result := $FFFFFFFF
-  else if not GetProp(Dpy, XDefaultRootWindow(Dpy), A, Result) then
+  else if not GetProp(Dpy, Win, A, Result) then
     Result := $FFFFFFFF;
 end;
 
-function GetDesktopNumber(Dpy: PDisplay; Win: TWindow): Cardinal;
+function GetDesktopNumber(Dpy: PDisplay): Cardinal;
 var
   A: TAtom;
 begin
   A := XInternAtom(Dpy, '_NET_NUMBER_OF_DESKTOPS', LongBool(1));
   if A = None then
     Result := $FFFFFFFF
-  else if not GetProp(Dpy, Win, A, Result) then
+  else if not GetProp(Dpy, XDefaultRootWindow(Dpy), A, Result) then
     Result := $FFFFFFFF;
 end;
 
@@ -562,22 +563,14 @@ begin
 end;
 
 function TXWindowManager.GetDesktopCount: integer;
-var
-  numdesk: TAtom;
-  prop: Cardinal;
 begin
   Result := 0;
-  //Result := Number(Display, ExcludeWindow);
-  if cdesk = 1 then
-  begin
-    SetDesktop(Display, 0);
-    cdesk := 0;
-  end
-  else
-  begin
-    SetDesktop(Display, 1);
-    cdesk := 1;
-  end;
+  Result := GetDesktopNumber(Display);
+end;
+
+procedure TXWindowManager.SetCurrentDesktop(DesktopIndex: Integer);
+begin
+  SetDesktop(Display, DesktopIndex);
 end;
 
 procedure TXWindowManager.OverrideRedirect(Window: TWindow);
