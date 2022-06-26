@@ -42,6 +42,8 @@ type
     procedure SetStrut(Window: TWindow; W, H: integer; StrutPos: integer);
     procedure CloseWindow(Window: TWindow);
     procedure OverrideRedirect(Window: TWindow);
+    function GetDesktopCount: integer;
+    { is this work? }
     procedure SetIconGeometry(Window: TWindow; T, L, W, H: integer);
   end;
 
@@ -60,6 +62,8 @@ threadvar OldHandler: TXErrorHandler;
 
 
 implementation
+uses
+  KiranaWindows;
 
 function GetProp(Dpy: PDisplay; Win: TWindow; Prop: TAtom; out Value: Cardinal; Offset: Cardinal): Boolean;
 var
@@ -175,6 +179,17 @@ var
   A: TAtom;
 begin
   A := XInternAtom(Dpy, '_NET_WM_DESKTOP', LongBool(1));
+  if A = None then
+    Result := $FFFFFFFF
+  else if not GetProp(Dpy, XDefaultRootWindow(Dpy), A, Result) then
+    Result := $FFFFFFFF;
+end;
+
+function GetDesktopNumber(Dpy: PDisplay; Win: TWindow): Cardinal;
+var
+  A: TAtom;
+begin
+  A := XInternAtom(Dpy, '_NET_NUMBER_OF_DESKTOPS', LongBool(1));
   if A = None then
     Result := $FFFFFFFF
   else if not GetProp(Dpy, Win, A, Result) then
@@ -546,6 +561,25 @@ begin
   ActivateWindow(Window);
 end;
 
+function TXWindowManager.GetDesktopCount: integer;
+var
+  numdesk: TAtom;
+  prop: Cardinal;
+begin
+  Result := 0;
+  //Result := Number(Display, ExcludeWindow);
+  if cdesk = 1 then
+  begin
+    SetDesktop(Display, 0);
+    cdesk := 0;
+  end
+  else
+  begin
+    SetDesktop(Display, 1);
+    cdesk := 1;
+  end;
+end;
+
 procedure TXWindowManager.OverrideRedirect(Window: TWindow);
 var
   Desktop: Cardinal;
@@ -629,32 +663,16 @@ end;
 
 procedure TXWindowManager.SetDesktopMode(Window: TWindow);
 var
-  wmtype, wmdesktop, wmtdesktop, wmstate, wmbelow, wmdock: TAtom;
-  prop: culong;
+  wmtype, wmtdesktop: TAtom;
   propsets: array[0..0] of integer = (0);
 begin
   wmtype := XInternAtom(display, '_NET_WM_WINDOW_TYPE', False);
-  wmstate := XInternAtom(display, '_NET_WM_STATE', False);
-  wmbelow := XInternAtom(display, '_NET_WM_STATE_BELOW', False);
-  wmdock := XInternAtom(display, '_NET_WM_WINDOW_TYPE_DOCK', False);
   wmtdesktop := XInternAtom(display, '_NET_WM_WINDOW_TYPE_DESKTOP', False);
-  wmdesktop := XInternAtom(display, '_NET_WM_DESKTOP', False);
-
-  prop := $FFFFFFFF;
   propsets[0] := wmtdesktop;
-
-  //XChangeProperty(fDisplay, Window, wmdesktop, XA_CARDINAL,
-  //  32, PropModeReplace, @prop, 1);
-  //XMapWindow(fDisplay, Window);
 
   XChangeProperty(fDisplay, Window, wmtype, XA_ATOM,
     32, PropModeReplace, @propsets, 1);
   XFlush(Display);
-  //XMapWindow(fDisplay, Window);
-
-  //XChangeProperty(fDisplay, Window, wmstate, XA_ATOM,
-  //  32, PropModeAppend, @wmbelow, 1);
-  //XMapWindow(fDisplay, Window);
 end;
 
 procedure TXWindowManager.SetDockedMode(Window: TWindow);
@@ -668,9 +686,9 @@ begin
 
   prop := $FFFFFFFF;
 
-  //XChangeProperty(fDisplay, Window, wmdesktop, XA_CARDINAL,
-  //  32, PropModeReplace, @prop, 1);
-  //XMapWindow(fDisplay, Window);
+  XChangeProperty(fDisplay, Window, wmdesktop, XA_CARDINAL,
+    32, PropModeReplace, @prop, 1);
+  XMapWindow(fDisplay, Window);
   //
   XChangeProperty(fDisplay, Window, wmtype, XA_ATOM,
     32, PropModeReplace, @wmdock, 1);

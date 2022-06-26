@@ -74,6 +74,7 @@ type
 
 var
   ExcludeWindow: TWindow;
+  cdesk: integer;
 implementation
 
 constructor TWindowData.Create(AXWindowList: TXWindowManager; AWindow: TWindow);
